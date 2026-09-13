@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Image &amp; Document Detector | Live Browser ML Demo</title>
+  <!-- TensorFlow.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <!-- SmartImageDetector Browser Client -->
+  <script src="smart-image-detector.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: rgba(18, 24, 38, 0.85);
+      --bg-card: rgba(28, 38, 58, 0.6);
+      --bg-card-hover: rgba(45, 59, 88, 0.7);
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --purple: #8b5cf6;
+      --purple-glow: rgba(139, 92, 246, 0.15);
+      --text-title: #f8fafc;
+      --text-body: #94a3b8;
+      --text-muted: #64748b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(59, 130, 246, 0.35);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg-base) 70%);
+      color: var(--text-title);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.6rem;
+    }
+
+    p.subtitle {
+      color: var(--text-body);
+      font-size: 0.96rem;
+      line-height: 1.55;
+      max-width: 660px;
+      margin: 0 auto;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 0.85rem 1.2rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-body);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fbbf24;
+      box-shadow: 0 0 10px #fbbf24;
+      transition: all 0.3s;
+    }
+
+    .status-dot.ready {
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+    }
+
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+
+    .model-select-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: var(--text-title);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Quick Samples */
+    .samples-section {
+      margin-bottom: 1.8rem;
+    }
+
+    .samples-group-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      margin-top: 0.8rem;
+    }
+
+    .samples-group-title:first-child {
+      margin-top: 0;
+    }
+
+    .samples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .sample-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      color: var(--text-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .sample-btn:hover {
+      border-color: var(--border-highlight);
+      color: var(--text-title);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    .sample-btn img {
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed rgba(59, 130, 246, 0.35);
+      background: rgba(15, 23, 42, 0.4);
+      padding: 2.5rem 1.5rem;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      text-align: center;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .upload-icon {
+      font-size: 2.2rem;
+      color: #60a5fa;
+    }
+
+    .upload-maintext {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .upload-subtext {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+
+    .upload-area input {
+      display: none;
+    }
+
+    /* Preview and Result */
+    .preview-card {
+      margin-top: 1.8rem;
+      display: none;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.8rem;
+      gap: 2rem;
+      align-items: center;
+      animation: fadeIn 0.35s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .preview-img-box {
+      position: relative;
+      flex: 0 0 240px;
+      max-width: 240px;
+      height: 240px;
+      background: #0b0f19;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+    }
+
+    #preview-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .result-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .badge-document {
+      background: var(--emerald-glow);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    .badge-photo {
+      background: var(--purple-glow);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #a78bfa;
+    }
+
+    .meta-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+    }
+
+    .stat-item {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-title);
+    }
+
+    /* Meter bar */
+    .meter-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 9999px;
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .meter-document {
+      background: linear-gradient(90deg, #059669, #10b981);
+    }
+
+    .meter-photo {
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    }
+
+    .recommendation-box {
+      background: rgba(30, 41, 59, 0.4);
+      border-left: 3px solid var(--primary);
+      padding: 0.75rem 1rem;
+      border-radius: 0 10px 10px 0;
+      font-size: 0.84rem;
+      color: var(--text-body);
+      line-height: 1.45;
+    }
+
+    .btn-reset {
+      align-self: flex-start;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset:hover {
+      color: var(--text-title);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Limitations Note */
+    .limitations-callout {
+      margin-top: 1.8rem;
+      background: rgba(30, 41, 59, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .limitations-callout strong {
+      color: #94a3b8;
+    }
+
+    @media (max-width: 680px) {
+      .container { padding: 1.5rem; }
+      .preview-card { flex-direction: column; }
+      .preview-img-box { width: 100%; max-width: 100%; }
+      .meta-stats { grid-template-columns: 1fr; }
+      .samples-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge-tag">Edge AI • Client-Side Inference</div>
+      <h1>Smart Image &amp; Document Detector</h1>
+      <p class="subtitle">
+        Classifies uploaded images directly in the browser as either a <strong>Document</strong> or <strong>Photograph</strong>
+        using a MobileNetV2 architecture in TensorFlow.js. Zero server upload, full privacy.
+      </p>
+    </header>
+
+    <!-- Controls / Model Switcher -->
+    <div class="controls-bar">
+      <div class="status-pill">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Initializing runtime...</span>
+      </div>
+
+      <div class="model-select-group">
+        <label for="model-select">Model Format:</label>
+        <select id="model-select">
+          <option value="../models/tfjs_uint8/model.json" selected>TFJS UINT8 (~2.2 MB • Recommended)</option>
+          <option value="../models/tfjs_float32/model.json">TFJS Float32 (~8.8 MB • Unquantized)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Quick Samples Section -->
+    <div class="samples-section">
+      <div class="samples-group-title">📄 Document Samples (Class 0)</div>
+      <div class="samples-grid">
+        <button class="sample-btn" onclick="loadSample('samples/document_invoice.jpg')" title="Commercial Invoice">
+          <img src="samples/document_invoice.jpg" alt="Invoice">
+          <span>Invoice</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/document_legal_form.jpg')" title="Legal / Official Form">
+          <img src="samples/document_legal_form.jpg" alt="Form">
+          <span>Legal Form</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/document_financial_table.jpg')" title="Financial Balance Sheet">
+          <img src="samples/document_financial_table.jpg" alt="Financial Table">
+          <span>Financial Table</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/document_letterhead.jpg')" title="Corporate Letterhead">
+          <img src="samples/document_letterhead.jpg" alt="Letterhead">
+          <span>Letterhead</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/document_questionnaire.jpg')" title="Survey Questionnaire">
+          <img src="samples/document_questionnaire.jpg" alt="Questionnaire">
+          <span>Questionnaire</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/document_stamped_report.jpg')" title="Stamped Official Report">
+          <img src="samples/document_stamped_report.jpg" alt="Report">
+          <span>Stamped Report</span>
+        </button>
+      </div>
+
+      <div class="samples-group-title">📷 Photograph Samples (Class 1)</div>
+      <div class="samples-grid">
+        <button class="sample-btn" onclick="loadSample('samples/photo_portrait.jpg')" title="Human Portrait">
+          <img src="samples/photo_portrait.jpg" alt="Portrait">
+          <span>Portrait</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/photo_nature.jpg')" title="Nature / Mountain Landscape">
+          <img src="samples/photo_nature.jpg" alt="Nature">
+          <span>Nature</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/photo_city_street.jpg')" title="Urban City Street">
+          <img src="samples/photo_city_street.jpg" alt="City Street">
+          <span>City Street</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/photo_animal.jpg')" title="Wildlife / Animal">
+          <img src="samples/photo_animal.jpg" alt="Animal">
+          <span>Animal</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/photo_architecture.jpg')" title="Architectural Building">
+          <img src="samples/photo_architecture.jpg" alt="Architecture">
+          <span>Architecture</span>
+        </button>
+        <button class="sample-btn" onclick="loadSample('samples/photo_indoor_scene.jpg')" title="Indoor Room Scene">
+          <img src="samples/photo_indoor_scene.jpg" alt="Indoor Scene">
+          <span>Indoor Scene</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drag & Drop Zone -->
+    <div class="upload-area" id="drop-zone">
+      <div class="upload-icon">📁</div>
+      <div class="upload-maintext">Drag &amp; drop an image here, or click to browse</div>
+      <div class="upload-subtext">Supports PNG, JPG, JPEG, WebP • 100% Client-Side Privacy</div>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+
+    <!-- Preview & Prediction Card -->
+    <div class="preview-card" id="preview-card">
+      <div class="preview-img-box">
+        <img id="preview-img" alt="Uploaded Image">
+      </div>
+
+      <div class="result-details">
+        <div class="result-header">
+          <div class="result-badge" id="result-badge">Classifying...</div>
+          <button class="btn-reset" onclick="resetDemo()">Clear</button>
+        </div>
+
+        <!-- Confidence Meter Bar -->
+        <div class="meter-container">
+          <div class="meter-fill" id="meter-fill"></div>
+        </div>
+
+        <div class="meta-stats">
+          <div class="stat-item">
+            <div class="stat-label">Confidence</div>
+            <div class="stat-val" id="stat-confidence">--%</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Latency</div>
+            <div class="stat-val" id="stat-latency">-- ms</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Raw Probability</div>
+            <div class="stat-val" id="stat-raw">--</div>
+          </div>
+        </div>
+
+        <div class="recommendation-box" id="recommendation-box">
+          Processing image...
+        </div>
+      </div>
+    </div>
+
+    <!-- Real-World Engineering Note -->
+    <div class="limitations-callout">
+      <strong>Engineering Note on Domain Adaptation:</strong>
+      This baseline model was trained on scanned monochrome document archives (RVL-CDIP) vs. general outdoor/portrait photography.
+      Documents containing embedded portrait photographs (such as National IDs, driver licenses, or passports) may trigger photograph feature activations due to face and color cues. See <code>docs/REAL_WORLD_VALIDATION.md</code> for empirical domain shift analysis and mitigation strategies.
+    </div>
+  </div>
+
+  <script>
+    let detector = null;
+
+    // Initialize Detector
+    async function initDetector() {
+      const select = document.getElementById('model-select');
+      const modelUrl = select.value;
+      updateStatus('loading', 'Loading Model...');
+
+      try {
+        if (detector) {
+          detector.dispose();
+        }
+        detector = new SmartImageDetector({ modelUrl: modelUrl });
+        await detector.load();
+        updateStatus('ready', 'Model Ready (In-Browser)');
+      } catch (err) {
+        console.error(err);
+        updateStatus('error', 'Model failed to load. Ensure local HTTP server is running.');
+      }
+    }
+
+    function updateStatus(state, msg) {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      dot.className = 'status-dot ' + (state === 'ready' ? 'ready' : state === 'error' ? 'error' : '');
+      text.innerText = msg;
+    }
+
+    // Handle Image Classification
+    async function processImage(imgElement) {
+      if (!detector || detector.isLoading) {
+        alert('Model is still loading. Please wait a moment.');
+        return;
+      }
+
+      const badge = document.getElementById('result-badge');
+      const conf = document.getElementById('stat-confidence');
+      const latency = document.getElementById('stat-latency');
+      const raw = document.getElementById('stat-raw');
+      const meter = document.getElementById('meter-fill');
+      const rec = document.getElementById('recommendation-box');
+
+      badge.innerText = 'Analyzing...';
+      badge.className = 'result-badge';
+
+      try {
+        const result = await detector.classify(imgElement);
+
+        const isDoc = result.class === 'document';
+        badge.innerText = result.label;
+        badge.className = 'result-badge ' + (isDoc ? 'badge-document' : 'badge-photo');
+
+        conf.innerText = `${result.confidence}%`;
+        latency.innerText = `${result.latencyMs} ms`;
+        raw.innerText = result.probability.toFixed(4);
+
+        meter.className = 'meter-fill ' + (isDoc ? 'meter-document' : 'meter-photo');
+        meter.style.width = `${result.confidence}%`;
+
+        if (isDoc) {
+          rec.innerHTML = '<strong>Document Detected (Class 0):</strong> High-contrast text layout identified. Recommended for lossless/high-fidelity compression (PNG, lossless WebP) or downstream OCR pipelines to preserve character legibility.';
+        } else {
+          rec.innerHTML = '<strong>Photograph Detected (Class 1):</strong> Natural continuous-tone scene identified. Recommended for high-efficiency lossy compression (WebP, AVIF, MozJPEG) for optimal bandwidth savings.';
+        }
+      } catch (error) {
+        badge.innerText = 'Error';
+        rec.innerText = 'Classification failed: ' + error.message;
+      }
+    }
+
+    function loadSample(url) {
+      const previewCard = document.getElementById('preview-card');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = url;
+      previewCard.style.display = 'flex';
+      previewImg.onload = () => processImage(previewImg);
+    }
+
+    function resetDemo() {
+      document.getElementById('preview-card').style.display = 'none';
+      document.getElementById('preview-img').src = '';
+      document.getElementById('file-input').value = '';
+    }
+
+    // Drag and Drop
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      if (!file.type.match('image.*')) {
+        alert('Please select an image file.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const previewCard = document.getElementById('preview-card');
+        const previewImg = document.getElementById('preview-img');
+        previewImg.src = e.target.result;
+        previewCard.style.display = 'flex';
+        previewImg.onload = () => processImage(previewImg);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById('model-select').addEventListener('change', () => {
+      initDetector();
+    });
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', initDetector);
+  </script>
+</body>
+</html>

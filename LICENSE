@@ -1,0 +1,45 @@
+MIT License
+
+Copyright (c) 2026 Smart Image & Document Detector Project Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+### Third-Party Licenses & Attributions
+
+This repository incorporates or interfaces with the following open-source software and research datasets:
+
+1. **MobileNetV2**
+   - Developed by: Google LLC
+   - License: Apache License 2.0
+   - Reference: Sandler et al., "MobileNetV2: Inverted Residuals and Linear Bottlenecks", CVPR 2018.
+
+2. **TensorFlow & TensorFlow.js**
+   - Developed by: Google LLC and the TensorFlow Authors
+   - License: Apache License 2.0
+
+3. **RVL-CDIP Dataset**
+   - Compiled by: Ryerson Vision Lab (Ryerson University)
+   - Underlying Documents: University of California, San Francisco (UCSF) Truth Tobacco Industry Documents
+   - Status: Public domain litigation discovery and government records used under educational/research fair use.
+   - Reference: Harley et al., "Evaluation of Deep Convolutional Nets for Document Image Classification", ICDAR 2015.
+
+4. **Sample Media**
+   - Images in `dataset/samples/` are sourced from Wikimedia Commons and open-access public archives under CC0 and Creative Commons Attribution licenses.
