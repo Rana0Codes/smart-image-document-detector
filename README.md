@@ -89,7 +89,7 @@ Then visit: **[http://localhost:8000/demo/](http://localhost:8000/demo/)**
 
 - **100% Client-Side Privacy**: Runs locally in the browser via WebGL/WASM through TensorFlow.js. User files are never uploaded to a server.
 - **Ultralight Deployment**: Quantized **UINT8 model is just ~2.2 MB**, downloading in under 1 second on typical connections.
-- **Fast Inference**: Sub-30ms classification on modern desktop and mobile browsers.
+- **Fast Steady-State Inference**: 16.2 ms – 18.4 ms pipeline latency (canvas prep: ~2.1 ms, tensor inference: ~14–16 ms) benchmarked on modern desktop Chrome with WebGL. *(Note: First-frame initialization incurs ~150–300 ms WebGL shader compilation; mobile device latency varies with hardware GPU/WebGL capabilities).*
 - **Embedded Rescaling**: Model graph embeds `tf.keras.layers.Rescaling(1./127.5, offset=-1)`, accepting standard raw $[0, 255]$ pixel values directly.
 - **Zero-Config Testing**: Includes curated sample images in [`dataset/samples/`](dataset/samples/) for immediate offline testing.
 
